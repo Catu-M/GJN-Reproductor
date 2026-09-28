@@ -1,0 +1,11 @@
+﻿<Window x:Class="MusicPlayer.PlayerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:MusicPlayer.Views"
+        Title="Pantalla"
+        Height="720" Width="1080"
+        Background="#0D0D0D"
+        WindowStartupLocation="Manual">
+
+    <views:PlayerView/>
+</Window>

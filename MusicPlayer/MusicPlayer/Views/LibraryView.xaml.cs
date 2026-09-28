@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 
 namespace MusicPlayer.Views;
@@ -9,8 +10,13 @@ public partial class LibraryView : UserControl
         InitializeComponent();
     }
 
-    private void Button_Click(object sender, System.Windows.RoutedEventArgs e)
+    private void OpenPlayer_Click(object sender, RoutedEventArgs e)
     {
+        (Window.GetWindow(this) as MainWindow)?.ShowPlayerWindow();
+    }
 
+    private void Fullscreen_Click(object sender, RoutedEventArgs e)
+    {
+        (Window.GetWindow(this) as MainWindow)?.TogglePlayerFullscreen();
     }
 }

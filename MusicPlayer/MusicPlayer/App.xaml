@@ -5,5 +5,8 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <converters:LyricStateColorConverter x:Key="LyricStateColorConverter"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+        </Style>
     </Application.Resources>
 </Application>

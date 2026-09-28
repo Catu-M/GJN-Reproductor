@@ -11,7 +11,6 @@
     </UserControl.Resources>
 
     <Grid>
-        <!-- Fondo animado con burbujas -->
         <local:AnimatedBackground Palette="{Binding Palette}"/>
 
         <Grid Margin="48">
@@ -23,19 +22,19 @@
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                 <Border Width="260" Height="260" CornerRadius="8"
                         Background="#2A2A2A" ClipToBounds="True">
-                    <Image Source="{Binding AlbumArt}" Stretch="UniformToFill"/>
+                    <Image Source="{Binding AlbumArt}" Stretch="UniformToFill" Margin="0,0,-1,2"/>
                 </Border>
-
                 <TextBlock Text="{Binding CurrentSong.Title}"
+                           FontFamily="Montserrat, Segoe UI"
                            Foreground="White"
                            FontSize="20"
                            FontWeight="SemiBold"
-                           Margin="0,16,0,4"
-                           TextWrapping="Wrap"/>
+                           TextWrapping="Wrap" Width="244" HorizontalAlignment="Center" TextAlignment="Center"/>
 
                 <TextBlock Text="{Binding CurrentSong.Artist}"
+                           FontFamily="Montserrat, Segoe UI"
                            Foreground="#D0D0D0"
-                           FontSize="14"/>
+                           FontSize="14" Width="218" HorizontalAlignment="Center" TextAlignment="Center"/>
             </StackPanel>
 
             <Grid Grid.Column="1" Margin="48,0,0,0">
