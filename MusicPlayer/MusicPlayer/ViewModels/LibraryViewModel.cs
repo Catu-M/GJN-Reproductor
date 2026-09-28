@@ -6,16 +6,13 @@ using MusicPlayer.Services;
 
 namespace MusicPlayer.ViewModels;
 
-/// <summary>
-/// Maneja la carpeta seleccionada, la lista de canciones y el comando de
-/// reproducir, que delega el trabajo real al PlayerViewModel compartido.
-/// </summary>
 public partial class LibraryViewModel : ObservableObject
 {
     private readonly MusicLibraryService _libraryService = new();
     private readonly PlayerViewModel _playerViewModel;
 
     public ObservableCollection<Song> Songs { get; } = new();
+    public PlayerViewModel Player => _playerViewModel;
 
     [ObservableProperty]
     private string? libraryFolder;
@@ -63,5 +60,11 @@ public partial class LibraryViewModel : ObservableObject
     {
         if (song is not null)
             _playerViewModel.Play(song);
+    }
+
+    [RelayCommand]
+    private void StopPlayback()
+    {
+        _playerViewModel.Stop();
     }
 }

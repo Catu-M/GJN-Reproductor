@@ -3,34 +3,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:MusicPlayer.Models">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <Grid Background="#0D0D0D" Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
             <Button Content="Elegir carpeta"
                     Command="{Binding ChooseFolderCommand}"
                     Padding="14,8"
-                    Background="#1DB954"
+                    Background="Black"
                     Foreground="White"
                     BorderThickness="0"
                     FontSize="13"
-                    Cursor="Hand"/>
+                    Cursor="Hand" Click="Button_Click"/>
             <TextBlock Text="{Binding LibraryFolder}"
                        Foreground="#8A8A8A"
                        VerticalAlignment="Center"
                        Margin="16,0,0,0"
                        FontSize="12"/>
             <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="#1DB954"
+                       Foreground="White"
                        VerticalAlignment="Center"
                        Margin="16,0,0,0"
                        FontSize="12"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+
             <ItemsControl ItemsSource="{Binding Songs}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:Song}">
@@ -38,6 +45,7 @@
                                 CornerRadius="8"
                                 Padding="12"
                                 Margin="0,0,0,8">
+
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -65,7 +73,7 @@
                                 <Button Grid.Column="2"
                                         Content="▶"
                                         Width="36" Height="36"
-                                        Background="#1DB954"
+                                        Background="Black"
                                         Foreground="White"
                                         BorderThickness="0"
                                         FontSize="14"
@@ -79,5 +87,39 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-    </Grid>
+        <Border Grid.Row="2"
+                Margin="0,12,0,0"
+                Padding="16,10"
+                CornerRadius="8"
+                Background="#161616"
+                Visibility="{Binding Player.IsPlaying, Converter={StaticResource BoolToVis}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Reproduciendo"
+                               Foreground="White"
+                               FontSize="11"/>
+                    <TextBlock Foreground="White" FontSize="14" TextTrimming="CharacterEllipsis">
+                        <Run Text="{Binding Player.CurrentSong.Title, Mode=OneWay}"/>
+                        <Run Text=" — " Foreground="#8A8A8A"/>
+                        <Run Text="{Binding Player.CurrentSong.Artist, Mode=OneWay}" Foreground="#8A8A8A"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="⏹  Detener"
+                        Command="{Binding StopPlaybackCommand}"
+                        Padding="16,8"
+                        Background="Black"
+                        Foreground="White"
+                        BorderThickness="0"
+                        FontSize="13"
+                        Cursor="Hand"/>
+            </Grid>
+        </Border>
+</Grid>
 </UserControl>
