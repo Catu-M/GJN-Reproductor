@@ -11,10 +11,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Fonts\MontserratAlternates-Bold.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
     <PackageReference Include="ksemenenko.ColorThief" Version="1.1.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Fonts\MontserratAlternates-Bold.ttf" />
   </ItemGroup>
 
 </Project>

@@ -5,8 +5,14 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <converters:LyricStateColorConverter x:Key="LyricStateColorConverter"/>
+
+        <FontFamily x:Key="AppFont">pack://application:,,,/Fonts/#Montserrat Alternates</FontFamily>
+
         <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI"/>
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
         </Style>
     </Application.Resources>
 </Application>
