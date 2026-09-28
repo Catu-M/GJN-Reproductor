@@ -129,7 +129,6 @@ public partial class PlayerViewModel : ObservableObject
             return;
 
         CurrentPosition = _audioFile.CurrentTime;
-        UpdateActiveLyric();
 
         if (_audioFile.CurrentTime >= _audioFile.TotalTime)
             Stop();
