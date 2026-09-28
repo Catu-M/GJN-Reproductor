@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "2rtiojCMhFw=",
+  "dgSpecHash": "TKWq1oITDf0=",
   "success": true,
-  "projectFilePath": "C:\\Users\\aleja\\OneDrive\\Escritorio\\GJN\\MusicPlayer\\MusicPlayer\\MusicPlayer.csproj",
+  "projectFilePath": "C:\\Users\\aleja\\OneDrive\\Escritorio\\Nueva carpeta\\GJN-Reproductor\\MusicPlayer\\MusicPlayer\\MusicPlayer.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\aleja\\.nuget\\packages\\communitytoolkit.mvvm\\8.3.2\\communitytoolkit.mvvm.8.3.2.nupkg.sha512",
     "C:\\Users\\aleja\\.nuget\\packages\\ksemenenko.colorthief\\1.1.1.4\\ksemenenko.colorthief.1.1.1.4.nupkg.sha512",

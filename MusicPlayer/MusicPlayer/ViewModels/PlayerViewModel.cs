@@ -9,8 +9,10 @@ using CommunityToolkit.Mvvm.Input;
 using MusicPlayer.Models;
 using MusicPlayer.Services;
 using NAudio.Wave;
+using System.Collections.Generic;
 
 namespace MusicPlayer.ViewModels;
+
 public partial class PlayerViewModel : ObservableObject
 {
     private readonly LyricsService _lyricsService = new();
@@ -40,6 +42,18 @@ public partial class PlayerViewModel : ObservableObject
 
     [ObservableProperty]
     private Color backgroundSecondary = Color.FromRgb(10, 10, 10);
+
+    [ObservableProperty]
+    private IReadOnlyList<Color> palette = Array.Empty<Color>();
+
+    [ObservableProperty]
+    private Color backgroundBase = Color.FromRgb(12, 14, 22);
+
+    [ObservableProperty]
+    private Color blobColor = Color.FromArgb(120, 160, 30, 40);
+
+    [ObservableProperty]
+    private Color blobSoftColor = Color.FromArgb(190, 40, 44, 56);
 
     [ObservableProperty]
     private int activeLyricIndex = -1;
@@ -154,9 +168,9 @@ public partial class PlayerViewModel : ObservableObject
 
             line.FontSize = absDistance switch
             {
-                0 => 80,
-                1 => 50,
-                _ => 20
+                0 => 160,
+                1 => 80,
+                _ => 40
             };
 
             line.Opacity = absDistance switch
@@ -204,5 +218,26 @@ public partial class PlayerViewModel : ObservableObject
         var (primary, secondary) = _colorService.GetDominantColors(coverArt);
         BackgroundPrimary = primary;
         BackgroundSecondary = secondary;
+
+        Palette = _colorService.GetPalette(coverArt, 6);
+    }
+
+    private static Color Lighten(Color color, double amount, byte alpha)
+    {
+        amount = Math.Clamp(amount, 0, 1);
+        return Color.FromArgb(
+            alpha,
+            (byte)(color.R + (255 - color.R) * amount),
+            (byte)(color.G + (255 - color.G) * amount),
+            (byte)(color.B + (255 - color.B) * amount));
+    }
+
+    private static Color Darken(Color color, double factor)
+    {
+        factor = Math.Clamp(factor, 0, 1);
+        return Color.FromRgb(
+            (byte)(color.R * factor),
+            (byte)(color.G * factor),
+            (byte)(color.B * factor));
     }
 }

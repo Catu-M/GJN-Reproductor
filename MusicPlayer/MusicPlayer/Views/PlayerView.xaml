@@ -1,6 +1,7 @@
 <UserControl x:Class="MusicPlayer.Views.PlayerView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MusicPlayer.Views"
              xmlns:models="clr-namespace:MusicPlayer.Models"
              xmlns:converters="clr-namespace:MusicPlayer.Converters">
 
@@ -9,28 +10,9 @@
         <converters:LyricStateColorConverter x:Key="LyricColorConverter"/>
     </UserControl.Resources>
 
-    <UserControl.Triggers>
-        <EventTrigger RoutedEvent="Loaded">
-            <BeginStoryboard>
-                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                    <PointAnimation Storyboard.TargetName="DynamicBackground"
-                                    Storyboard.TargetProperty="StartPoint"
-                                    To="1,1" Duration="0:0:10"/>
-                    <PointAnimation Storyboard.TargetName="DynamicBackground"
-                                    Storyboard.TargetProperty="EndPoint"
-                                    To="0,0" Duration="0:0:10"/>
-                </Storyboard>
-            </BeginStoryboard>
-        </EventTrigger>
-    </UserControl.Triggers>
-
     <Grid>
-        <Grid.Background>
-            <LinearGradientBrush x:Name="DynamicBackground" StartPoint="0,0" EndPoint="1,1">
-                <GradientStop Color="{Binding BackgroundPrimary}" Offset="0"/>
-                <GradientStop Color="{Binding BackgroundSecondary}" Offset="1"/>
-            </LinearGradientBrush>
-        </Grid.Background>
+        <!-- Fondo animado con burbujas -->
+        <local:AnimatedBackground Palette="{Binding Palette}"/>
 
         <Grid Margin="48">
             <Grid.ColumnDefinitions>
@@ -54,17 +36,6 @@
                 <TextBlock Text="{Binding CurrentSong.Artist}"
                            Foreground="#D0D0D0"
                            FontSize="14"/>
-
-                <Button Content="{Binding PlayPauseLabel}"
-                        Command="{Binding TogglePauseCommand}"
-                        Width="44" Height="44"
-                        HorizontalAlignment="Left"
-                        Background="#1DB954"
-                        Foreground="White"
-                        BorderThickness="0"
-                        FontSize="16"
-                        Cursor="Hand"
-                        Margin="0,20,0,0"/>
             </StackPanel>
 
             <Grid Grid.Column="1" Margin="48,0,0,0">
@@ -74,7 +45,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:LyricLine}">
                             <TextBlock Text="{Binding Text}"
-                                       Foreground="{Binding State, Converter={StaticResource LyricStateColorConverter}}"
+                                       Foreground="{Binding State, Converter={StaticResource LyricColorConverter}}"
                                        FontSize="{Binding FontSize}"
                                        Opacity="{Binding Opacity}"
                                        Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}"

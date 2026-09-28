@@ -1,0 +1,21 @@
+## Carpetas de compilación y binarios (auto-generados por .NET)
+bin/
+obj/
+out/
+
+## Entorno y configuración local de Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Paquetes de NuGet y temporales
+*.nupkg
+packages/
+Project_Default.xml
+
+## Caché de usuario o registros
+*.log
+[Dd]ebug/
+[Rr]elease/
