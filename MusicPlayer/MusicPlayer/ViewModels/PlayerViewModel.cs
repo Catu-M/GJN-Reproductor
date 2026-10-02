@@ -26,6 +26,9 @@ public partial class PlayerViewModel : ObservableObject
     private Song? currentSong;
 
     [ObservableProperty]
+    private bool hasSong;
+
+    [ObservableProperty]
     private bool isPlaying;
 
     [ObservableProperty]
@@ -33,6 +36,24 @@ public partial class PlayerViewModel : ObservableObject
 
     [ObservableProperty]
     private TimeSpan currentPosition;
+
+    [ObservableProperty]
+    private TimeSpan totalDuration;
+
+    [ObservableProperty]
+    private double positionSeconds;
+
+    [ObservableProperty]
+    private double durationSeconds;
+
+    [ObservableProperty]
+    private string positionText = "00:00.000";
+
+    [ObservableProperty]
+    private string durationText = "00:00.000";
+
+    [ObservableProperty]
+    private bool isSeeking;
 
     [ObservableProperty]
     private ImageSource? albumArt;
@@ -81,6 +102,7 @@ public partial class PlayerViewModel : ObservableObject
         _outputDevice.Play();
 
         IsPlaying = true;
+        TotalDuration = _audioFile.TotalTime;
         _timer.Start();
 
         LoadAlbumArt(song.CoverArt);
@@ -116,6 +138,45 @@ public partial class PlayerViewModel : ObservableObject
         _audioFile = null;
         IsPlaying = false;
         ActiveLyricIndex = -1;
+        CurrentPosition = TimeSpan.Zero;
+        TotalDuration = TimeSpan.Zero;
+        CurrentSong = null;
+    }
+
+    /// <summary>Mueve la reproducción a una posición concreta (usado al arrastrar la barra de progreso).</summary>
+    public void Seek(TimeSpan position)
+    {
+        if (_audioFile is null)
+            return;
+
+        if (position < TimeSpan.Zero)
+            position = TimeSpan.Zero;
+        else if (position > TotalDuration)
+            position = TotalDuration;
+
+        _audioFile.CurrentTime = position;
+        CurrentPosition = position;
+    }
+
+    // --- Arrastre de la barra de progreso ---
+    // La vista solo reenvía sus eventos de mouse a estos tres métodos;
+    // toda la decisión de cuándo mover el audio vive aquí.
+
+    /// <summary>Llamar cuando el usuario presiona sobre la barra de progreso.</summary>
+    public void BeginSeek() => IsSeeking = true;
+
+    /// <summary>Llamar en cada cambio de valor mientras se arrastra; mueve el audio en vivo.</summary>
+    public void DragSeek(double seconds)
+    {
+        if (IsSeeking)
+            Seek(TimeSpan.FromSeconds(seconds));
+    }
+
+    /// <summary>Llamar cuando el usuario suelta el mouse; fija la posición final.</summary>
+    public void EndSeek(double seconds)
+    {
+        Seek(TimeSpan.FromSeconds(seconds));
+        IsSeeking = false;
     }
 
     partial void OnIsPlayingChanged(bool value)
@@ -123,12 +184,33 @@ public partial class PlayerViewModel : ObservableObject
         PlayPauseLabel = value ? "⏸" : "▶";
     }
 
+    partial void OnCurrentSongChanged(Song? value)
+    {
+        HasSong = value is not null;
+    }
+
+    partial void OnCurrentPositionChanged(TimeSpan value)
+    {
+        PositionSeconds = value.TotalSeconds;
+        PositionText = FormatTime(value);
+    }
+
+    partial void OnTotalDurationChanged(TimeSpan value)
+    {
+        DurationSeconds = value.TotalSeconds;
+        DurationText = FormatTime(value);
+    }
+
+    private static string FormatTime(TimeSpan t) => t.ToString(@"mm\:ss\.fff");
+
     private void Timer_Tick(object? sender, EventArgs e)
     {
         if (_audioFile is null)
             return;
 
-        CurrentPosition = _audioFile.CurrentTime;
+        // Mientras el usuario arrastra la barra, no pisamos su posición con la del timer.
+        if (!IsSeeking)
+            CurrentPosition = _audioFile.CurrentTime;
 
         if (_audioFile.CurrentTime >= _audioFile.TotalTime)
             Stop();

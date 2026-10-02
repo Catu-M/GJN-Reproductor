@@ -59,7 +59,7 @@
                             <DataTemplate DataType="{x:Type models:LyricLine}">
                                 <TextBlock Text="{Binding Text}"
                                           Foreground="White"
-                                          FontSize="120"
+                                          FontSize="130"
                                           FontWeight="Bold"
                                           TextAlignment="Center"
                                           TextWrapping="Wrap"

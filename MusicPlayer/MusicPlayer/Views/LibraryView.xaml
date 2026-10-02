@@ -14,7 +14,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-
         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
             <Button Content="Elegir carpeta"
                     Command="{Binding ChooseFolderCommand}"
@@ -52,18 +51,46 @@
                        VerticalAlignment="Center"
                        Margin="16,0,0,0"
                        FontSize="12"/>
+
+            <Border Background="#161616"
+                    CornerRadius="6"
+                    Margin="16,0,0,0"
+                    Padding="10,6"
+                    Width="220">
+                <Grid>
+                    <TextBlock Text="Buscar cancion o artista..."
+                               Foreground="#6A6A6A"
+                               FontSize="13"
+                               IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SearchText}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Background="Transparent"
+                             Foreground="White"
+                             CaretBrush="White"
+                             BorderThickness="0"
+                             FontSize="13"/>
+                </Grid>
+            </Border>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-
-            <ItemsControl ItemsSource="{Binding Songs}">
+            <ItemsControl ItemsSource="{Binding SongsView}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:Song}">
                         <Border Background="#161616"
                                 CornerRadius="8"
                                 Padding="12"
                                 Margin="0,0,0,8">
-
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -96,8 +123,7 @@
                                         BorderThickness="0"
                                         FontSize="14"
                                         Cursor="Hand"
-                                        Command="{Binding DataContext.PlaySongCommand,
-                                                  RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        Command="{Binding DataContext.PlaySongCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                         CommandParameter="{Binding}"/>
                             </Grid>
                         </Border>
@@ -105,39 +131,116 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
         <Border Grid.Row="2"
                 Margin="0,12,0,0"
-                Padding="16,10"
+                Padding="16,12"
                 CornerRadius="8"
                 Background="#161616"
-                Visibility="{Binding Player.IsPlaying, Converter={StaticResource BoolToVis}}">
+                Visibility="{Binding Player.HasSong, Converter={StaticResource BoolToVis}}">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Reproduciendo"
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
                                Foreground="White"
-                               FontSize="11"/>
-                    <TextBlock Foreground="White" FontSize="14" TextTrimming="CharacterEllipsis">
+                               FontSize="14"
+                               TextTrimming="CharacterEllipsis">
                         <Run Text="{Binding Player.CurrentSong.Title, Mode=OneWay}"/>
-                        <Run Text=" — " Foreground="#8A8A8A"/>
+                        <Run Text=" - " Foreground="#8A8A8A"/>
                         <Run Text="{Binding Player.CurrentSong.Artist, Mode=OneWay}" Foreground="#8A8A8A"/>
                     </TextBlock>
-                </StackPanel>
 
-                <Button Grid.Column="1"
-                        Content="⏹  Detener"
-                        Command="{Binding StopPlaybackCommand}"
-                        Padding="16,8"
-                        Background="Black"
-                        Foreground="White"
-                        BorderThickness="0"
-                        FontSize="13"
-                        Cursor="Hand"/>
+                    <Button Grid.Column="1"
+                            Content="X"
+                            Command="{Binding StopPlaybackCommand}"
+                            ToolTip="Detener"
+                            Width="24" Height="24"
+                            Background="Transparent"
+                            Foreground="#8A8A8A"
+                            BorderThickness="0"
+                            FontSize="12"
+                            Cursor="Hand"/>
+                </Grid>
+
+                <Grid Grid.Row="1" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="58"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="58"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Player.PositionText}"
+                               Foreground="#8A8A8A"
+                               FontSize="11"
+                               FontFamily="Consolas"
+                               TextAlignment="Right"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+
+                    <Slider x:Name="ProgressSlider"
+                            Grid.Column="1"
+                            Minimum="0"
+                            Maximum="{Binding Player.DurationSeconds}"
+                            Value="{Binding Player.PositionSeconds, Mode=OneWay}"
+                            IsMoveToPointEnabled="True"
+                            VerticalAlignment="Center"
+                            PreviewMouseLeftButtonDown="ProgressSlider_PreviewMouseLeftButtonDown"
+                            PreviewMouseLeftButtonUp="ProgressSlider_PreviewMouseLeftButtonUp"
+                            ValueChanged="ProgressSlider_ValueChanged"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Player.DurationText}"
+                               Foreground="#8A8A8A"
+                               FontSize="11"
+                               FontFamily="Consolas"
+                               TextAlignment="Left"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0"/>
+                </Grid>
+
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <Button Content="&lt;&lt;"
+                            Command="{Binding PreviousSongCommand}"
+                            Width="36" Height="36"
+                            Background="Transparent"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="15"
+                            Cursor="Hand"/>
+
+                    <Button Content="{Binding Player.PlayPauseLabel}"
+                            Command="{Binding Player.TogglePauseCommand}"
+                            Width="40" Height="40"
+                            Margin="10,0"
+                            Background="Black"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="16"
+                            Cursor="Hand"/>
+
+                    <Button Content="&gt;&gt;"
+                            Command="{Binding NextSongCommand}"
+                            Width="36" Height="36"
+                            Background="Transparent"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="15"
+                            Cursor="Hand"/>
+                </StackPanel>
             </Grid>
         </Border>
-</Grid>
+    </Grid>
 </UserControl>

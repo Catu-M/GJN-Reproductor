@@ -1,4 +1,8 @@
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MusicPlayer.Models;
@@ -12,6 +16,8 @@ public partial class LibraryViewModel : ObservableObject
     private readonly PlayerViewModel _playerViewModel;
 
     public ObservableCollection<Song> Songs { get; } = new();
+    public ICollectionView SongsView { get; }
+
     public PlayerViewModel Player => _playerViewModel;
 
     [ObservableProperty]
@@ -20,9 +26,29 @@ public partial class LibraryViewModel : ObservableObject
     [ObservableProperty]
     private string statusMessage = "Elige una carpeta para empezar.";
 
+    [ObservableProperty]
+    private string searchText = string.Empty;
+
     public LibraryViewModel(PlayerViewModel playerViewModel)
     {
         _playerViewModel = playerViewModel;
+
+        SongsView = CollectionViewSource.GetDefaultView(Songs);
+        SongsView.Filter = FilterSong;
+    }
+
+    partial void OnSearchTextChanged(string value) => SongsView.Refresh();
+
+    private bool FilterSong(object obj)
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+            return true;
+
+        if (obj is not Song song)
+            return false;
+
+        return song.Title.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+            || song.Artist.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
     }
 
     [RelayCommand]
@@ -66,5 +92,38 @@ public partial class LibraryViewModel : ObservableObject
     private void StopPlayback()
     {
         _playerViewModel.Stop();
+    }
+
+    public void BeginSeek() => _playerViewModel.BeginSeek();
+
+ 
+    public void DragSeek(double seconds) => _playerViewModel.DragSeek(seconds);
+
+    /// <summary>Llamar cuando el usuario suelta el mouse; fija la posición final.</summary>
+    public void EndSeek(double seconds) => _playerViewModel.EndSeek(seconds);
+
+    [RelayCommand]
+    private void NextSong() => PlayAdjacent(1);
+
+    [RelayCommand]
+    private void PreviousSong() => PlayAdjacent(-1);
+
+    /// <summary>Reproduce la canción anterior/siguiente dentro del orden visible (respeta el buscador).</summary>
+    private void PlayAdjacent(int offset)
+    {
+        var current = _playerViewModel.CurrentSong;
+        if (current is null)
+            return;
+
+        var visible = SongsView.Cast<Song>().ToList();
+        var index = visible.IndexOf(current);
+        if (index < 0)
+            return;
+
+        var newIndex = index + offset;
+        if (newIndex < 0 || newIndex >= visible.Count)
+            return;
+
+        _playerViewModel.Play(visible[newIndex]);
     }
 }
