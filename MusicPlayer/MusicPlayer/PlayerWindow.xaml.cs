@@ -10,14 +10,13 @@ public partial class PlayerWindow : Window
     public PlayerWindow(object viewModel)
     {
         InitializeComponent();
-        DataContext = viewModel; // PlayerView hereda este DataContext
+        DataContext = viewModel; 
     }
-
     public void ToggleFullscreen()
     {
         if (!_isFullscreen)
         {
-            WindowState = WindowState.Normal;   // truco para que cubra también la barra de tareas
+            WindowState = WindowState.Normal;  
             WindowStyle = WindowStyle.None;
             WindowState = WindowState.Maximized;
         }

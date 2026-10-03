@@ -1,25 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 namespace MusicPlayer.Views;
-
-/// <summary>
-/// Fondo animado tipo "Apple Music": burbujas de color con degradado radial
-/// (color -> transparente) que flotan por toda la superficie.
-/// </summary>
 public class AnimatedBackground : Canvas
 {
     public static readonly DependencyProperty PaletteProperty = DependencyProperty.Register(
         nameof(Palette),
         typeof(IReadOnlyList<Color>),
         typeof(AnimatedBackground),
-        new PropertyMetadata(null, (d, _) => ((AnimatedBackground)d).ApplyPalette()));
+        new PropertyMetadata(null, (d, _) => ((AnimatedBackground)d).SetTargets(instant: false))
+    );
 
     public IReadOnlyList<Color>? Palette
     {
@@ -33,15 +29,13 @@ public class AnimatedBackground : Canvas
         public GradientStop[] Stops = null!;
         public TranslateTransform Move = new();
         public double AnchorX, AnchorY, Size, AmpX, AmpY, SpeedX, SpeedY, PhaseX, PhaseY;
+        public Vector3 Cur, Target;
     }
-
-    // Offsets y opacidades del degradado: el centro es opaco y el borde queda en 0
-    // (esto es lo que hace que las burbujas se fundan con el fondo).
+    private const double ColorTau = 0.7;
+    private const double MaxDt = 0.05;
+    private const float BaseDarken = 0.40f;
     private static readonly double[] StopOffsets = { 0.0, 0.35, 0.70, 1.0 };
     private static readonly byte[] StopAlphas = { 210, 150, 50, 0 };
-
-    // anchorX, anchorY, tamaño, ampX, ampY, velX, velY, faseX, faseY
-    // Repartidas por TODA la pantalla, no en una esquina.
     private static readonly double[][] Layout =
     {
         new[] { 0.15, 0.20, 0.85, 0.12, 0.10, 0.23, 0.31, 0.0, 1.2 },
@@ -60,14 +54,19 @@ public class AnimatedBackground : Canvas
 
     private readonly List<Blob> _blobs = new();
     private readonly Stopwatch _clock = Stopwatch.StartNew();
-    private bool _paletteApplied;
+    private readonly SolidColorBrush _bgBrush = new(Color.FromRgb(20, 20, 20));
+
+    private Vector3 _bgCur, _bgTarget;
+    private double _time;       
+    private double _lastFrame;
+    private bool _settled = true; 
     private bool _rendering;
 
     public AnimatedBackground()
     {
         ClipToBounds = true;
         IsHitTestVisible = false;
-        Background = new SolidColorBrush(Color.FromRgb(20, 20, 20));
+        Background = _bgBrush;
 
         foreach (var l in Layout)
         {
@@ -116,12 +115,13 @@ public class AnimatedBackground : Canvas
             if (IsVisible) StartRendering(); else StopRendering();
         };
 
-        ApplyPalette();
+        SetTargets(instant: true);
     }
 
     private void StartRendering()
     {
         if (_rendering) return;
+        _lastFrame = _clock.Elapsed.TotalSeconds; 
         CompositionTarget.Rendering += OnFrame;
         _rendering = true;
     }
@@ -153,48 +153,81 @@ public class AnimatedBackground : Canvas
 
     private void OnFrame(object? sender, EventArgs e)
     {
-        double t = _clock.Elapsed.TotalSeconds;
+        double now = _clock.Elapsed.TotalSeconds;
+        double dt = Math.Min(now - _lastFrame, MaxDt);
+        _lastFrame = now;
+        if (dt <= 0) return;
+
+        _time += dt;
+
+        // Movimiento continuo, nunca se reinicia
         double w = ActualWidth;
         double h = ActualHeight;
+        foreach (var b in _blobs)
+        {
+            b.Move.X = Math.Sin(_time * b.SpeedX + b.PhaseX) * b.AmpX * w;
+            b.Move.Y = Math.Cos(_time * b.SpeedY + b.PhaseY) * b.AmpY * h;
+        }
+
+        if (_settled) return;
+
+        float k = (float)(1 - Math.Exp(-dt / ColorTau));
+        float maxDiff = 0;
+
+        _bgCur += (_bgTarget - _bgCur) * k;
+        maxDiff = Math.Max(maxDiff, (_bgTarget - _bgCur).Length());
 
         foreach (var b in _blobs)
         {
-            b.Move.X = Math.Sin(t * b.SpeedX + b.PhaseX) * b.AmpX * w;
-            b.Move.Y = Math.Cos(t * b.SpeedY + b.PhaseY) * b.AmpY * h;
+            b.Cur += (b.Target - b.Cur) * k;
+            maxDiff = Math.Max(maxDiff, (b.Target - b.Cur).Length());
         }
+
+        if (maxDiff < 0.4f)
+        {
+            _bgCur = _bgTarget;
+            foreach (var b in _blobs) b.Cur = b.Target;
+            _settled = true;
+        }
+
+        ApplyColors();
     }
 
-    private void ApplyPalette()
+    private void SetTargets(bool instant)
     {
         var palette = Palette is { Count: > 0 } ? Palette : FallbackPalette;
-        bool animate = _paletteApplied && IsLoaded;
-        var duration = new Duration(TimeSpan.FromSeconds(1.2));
 
-        // Fondo base: el color principal, oscurecido
-        var c0 = palette[0];
-        var baseColor = Color.FromRgb((byte)(c0.R * 0.40), (byte)(c0.G * 0.40), (byte)(c0.B * 0.40));
-        var bg = (SolidColorBrush)Background;
-        if (animate) bg.BeginAnimation(SolidColorBrush.ColorProperty, new ColorAnimation(baseColor, duration));
-        else { bg.BeginAnimation(SolidColorBrush.ColorProperty, null); bg.Color = baseColor; }
-
-        // Cada burbuja toma un color de la paleta (cíclico)
+        _bgTarget = ToVec(palette[0]) * BaseDarken;
         for (int i = 0; i < _blobs.Count; i++)
-        {
-            var c = palette[i % palette.Count];
-            var stops = _blobs[i].Stops;
-            for (int s = 0; s < stops.Length; s++)
-            {
-                var target = Color.FromArgb(StopAlphas[s], c.R, c.G, c.B);
-                if (animate)
-                    stops[s].BeginAnimation(GradientStop.ColorProperty, new ColorAnimation(target, duration));
-                else
-                {
-                    stops[s].BeginAnimation(GradientStop.ColorProperty, null);
-                    stops[s].Color = target;
-                }
-            }
-        }
+            _blobs[i].Target = ToVec(palette[i % palette.Count]);
 
-        _paletteApplied = true;
+        if (instant)
+        {
+            _bgCur = _bgTarget;
+            foreach (var b in _blobs) b.Cur = b.Target;
+            _settled = true;
+            ApplyColors();
+        }
+        else
+        {
+            _settled = false; // el siguiente fotograma empieza a transicionar
+        }
     }
+    private void ApplyColors()
+    {
+        _bgBrush.Color = ToColor(255, _bgCur);
+
+        foreach (var b in _blobs)
+        {
+            for (int s = 0; s < b.Stops.Length; s++)
+                b.Stops[s].Color = ToColor(StopAlphas[s], b.Cur);
+        }
+    }
+    private static Vector3 ToVec(Color c) => new(c.R, c.G, c.B);
+
+    private static Color ToColor(byte alpha, Vector3 v) => Color.FromArgb(
+        alpha,
+        (byte)Math.Clamp(MathF.Round(v.X), 0, 255),
+        (byte)Math.Clamp(MathF.Round(v.Y), 0, 255),
+        (byte)Math.Clamp(MathF.Round(v.Z), 0, 255));
 }

@@ -12,23 +12,17 @@ namespace MusicPlayer.ViewModels;
 
 public partial class LibraryViewModel : ObservableObject
 {
+    public PlayerViewModel Player => _playerViewModel;
     private readonly MusicLibraryService _libraryService = new();
     private readonly PlayerViewModel _playerViewModel;
-
     public ObservableCollection<Song> Songs { get; } = new();
     public ICollectionView SongsView { get; }
-
-    public PlayerViewModel Player => _playerViewModel;
-
     [ObservableProperty]
     private string? libraryFolder;
-
     [ObservableProperty]
     private string statusMessage = "Elige una carpeta para empezar.";
-
     [ObservableProperty]
     private string searchText = string.Empty;
-
     public LibraryViewModel(PlayerViewModel playerViewModel)
     {
         _playerViewModel = playerViewModel;
@@ -36,9 +30,7 @@ public partial class LibraryViewModel : ObservableObject
         SongsView = CollectionViewSource.GetDefaultView(Songs);
         SongsView.Filter = FilterSong;
     }
-
     partial void OnSearchTextChanged(string value) => SongsView.Refresh();
-
     private bool FilterSong(object obj)
     {
         if (string.IsNullOrWhiteSpace(SearchText))
@@ -65,7 +57,6 @@ public partial class LibraryViewModel : ObservableObject
             LoadSongs();
         }
     }
-
     private void LoadSongs()
     {
         Songs.Clear();
@@ -96,10 +87,7 @@ public partial class LibraryViewModel : ObservableObject
 
     public void BeginSeek() => _playerViewModel.BeginSeek();
 
- 
     public void DragSeek(double seconds) => _playerViewModel.DragSeek(seconds);
-
-    /// <summary>Llamar cuando el usuario suelta el mouse; fija la posición final.</summary>
     public void EndSeek(double seconds) => _playerViewModel.EndSeek(seconds);
 
     [RelayCommand]
@@ -107,8 +95,6 @@ public partial class LibraryViewModel : ObservableObject
 
     [RelayCommand]
     private void PreviousSong() => PlayAdjacent(-1);
-
-    /// <summary>Reproduce la canción anterior/siguiente dentro del orden visible (respeta el buscador).</summary>
     private void PlayAdjacent(int offset)
     {
         var current = _playerViewModel.CurrentSong;
@@ -123,7 +109,6 @@ public partial class LibraryViewModel : ObservableObject
         var newIndex = index + offset;
         if (newIndex < 0 || newIndex >= visible.Count)
             return;
-
         _playerViewModel.Play(visible[newIndex]);
     }
 }

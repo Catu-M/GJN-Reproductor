@@ -10,7 +10,7 @@ using MusicPlayer.Models;
 using MusicPlayer.Services;
 using NAudio.Wave;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 namespace MusicPlayer.ViewModels;
 
 public partial class PlayerViewModel : ObservableObject
@@ -18,69 +18,47 @@ public partial class PlayerViewModel : ObservableObject
     private readonly LyricsService _lyricsService = new();
     private readonly ColorExtractionService _colorService = new();
     private readonly DispatcherTimer _timer;
-
     private IWavePlayer? _outputDevice;
     private AudioFileReader? _audioFile;
-
     [ObservableProperty]
     private Song? currentSong;
-
     [ObservableProperty]
     private bool hasSong;
-
     [ObservableProperty]
     private bool isPlaying;
-
     [ObservableProperty]
     private string playPauseLabel = "▶";
-
     [ObservableProperty]
     private TimeSpan currentPosition;
-
     [ObservableProperty]
     private TimeSpan totalDuration;
-
     [ObservableProperty]
     private double positionSeconds;
-
     [ObservableProperty]
     private double durationSeconds;
-
     [ObservableProperty]
     private string positionText = "00:00.000";
-
     [ObservableProperty]
     private string durationText = "00:00.000";
-
     [ObservableProperty]
     private bool isSeeking;
-
     [ObservableProperty]
     private ImageSource? albumArt;
-
     [ObservableProperty]
     private Color backgroundPrimary = Color.FromRgb(20, 20, 20);
-
     [ObservableProperty]
     private Color backgroundSecondary = Color.FromRgb(10, 10, 10);
-
     [ObservableProperty]
     private IReadOnlyList<Color> palette = Array.Empty<Color>();
-
     [ObservableProperty]
     private Color backgroundBase = Color.FromRgb(12, 14, 22);
-
     [ObservableProperty]
     private Color blobColor = Color.FromArgb(120, 160, 30, 40);
-
     [ObservableProperty]
     private Color blobSoftColor = Color.FromArgb(190, 40, 44, 56);
-
     [ObservableProperty]
     private int activeLyricIndex = -1;
-
     public ObservableCollection<LyricLine> Lyrics { get; } = new();
-
     public PlayerViewModel()
     {
         _timer = new DispatcherTimer
@@ -100,11 +78,9 @@ public partial class PlayerViewModel : ObservableObject
         _audioFile = new AudioFileReader(song.FilePath);
         _outputDevice.Init(_audioFile);
         _outputDevice.Play();
-
         IsPlaying = true;
         TotalDuration = _audioFile.TotalTime;
         _timer.Start();
-
         LoadAlbumArt(song.CoverArt);
         LoadLyricsFor(song);
         LoadBackgroundColors(song.CoverArt);
@@ -142,8 +118,7 @@ public partial class PlayerViewModel : ObservableObject
         TotalDuration = TimeSpan.Zero;
         CurrentSong = null;
     }
-
-    /// <summary>Mueve la reproducción a una posición concreta (usado al arrastrar la barra de progreso).</summary>
+    //barra de progreso de la melodía 
     public void Seek(TimeSpan position)
     {
         if (_audioFile is null)
@@ -158,49 +133,38 @@ public partial class PlayerViewModel : ObservableObject
         CurrentPosition = position;
     }
 
-    // --- Arrastre de la barra de progreso ---
-    // La vista solo reenvía sus eventos de mouse a estos tres métodos;
-    // toda la decisión de cuándo mover el audio vive aquí.
-
-    /// <summary>Llamar cuando el usuario presiona sobre la barra de progreso.</summary>
+    // colocar un tiempo exacto arrastrando la barra de progreso 
     public void BeginSeek() => IsSeeking = true;
 
-    /// <summary>Llamar en cada cambio de valor mientras se arrastra; mueve el audio en vivo.</summary>
+    // mueve el audio en vivo 
     public void DragSeek(double seconds)
     {
         if (IsSeeking)
             Seek(TimeSpan.FromSeconds(seconds));
     }
-
-    /// <summary>Llamar cuando el usuario suelta el mouse; fija la posición final.</summary>
     public void EndSeek(double seconds)
     {
         Seek(TimeSpan.FromSeconds(seconds));
         IsSeeking = false;
     }
-
     partial void OnIsPlayingChanged(bool value)
     {
         PlayPauseLabel = value ? "⏸" : "▶";
     }
-
     partial void OnCurrentSongChanged(Song? value)
     {
         HasSong = value is not null;
     }
-
     partial void OnCurrentPositionChanged(TimeSpan value)
     {
         PositionSeconds = value.TotalSeconds;
         PositionText = FormatTime(value);
     }
-
     partial void OnTotalDurationChanged(TimeSpan value)
     {
         DurationSeconds = value.TotalSeconds;
         DurationText = FormatTime(value);
     }
-
     private static string FormatTime(TimeSpan t) => t.ToString(@"mm\:ss\.fff");
 
     private void Timer_Tick(object? sender, EventArgs e)
@@ -208,62 +172,12 @@ public partial class PlayerViewModel : ObservableObject
         if (_audioFile is null)
             return;
 
-        // Mientras el usuario arrastra la barra, no pisamos su posición con la del timer.
         if (!IsSeeking)
             CurrentPosition = _audioFile.CurrentTime;
 
         if (_audioFile.CurrentTime >= _audioFile.TotalTime)
             Stop();
     }
-    private const int LyricWindowRadius = 2;
-
-    private void UpdateActiveLyric()
-    {
-        if (Lyrics.Count == 0)
-            return;
-
-        var index = -1;
-        for (var i = 0; i < Lyrics.Count; i++)
-        {
-            if (Lyrics[i].Time <= CurrentPosition)
-                index = i;
-            else
-                break;
-        }
-
-        ActiveLyricIndex = index;
-
-        for (var i = 0; i < Lyrics.Count; i++)
-        {
-            var distance = i - index;       // negativo = ya pasó, positivo = falta
-            var absDistance = Math.Abs(distance);
-            var line = Lyrics[i];
-
-            line.State = distance < 0
-                ? LyricLineState.Past
-                : distance == 0
-                    ? LyricLineState.Current
-                    : LyricLineState.Future;
-
-            line.IsVisible = absDistance <= LyricWindowRadius;
-
-            line.FontSize = absDistance switch
-            {
-                0 => 160,
-                1 => 80,
-                _ => 40
-            };
-
-            line.Opacity = absDistance switch
-            {
-                0 => 1.0,
-                1 => 0.6,
-                2 => 0.3,
-                _ => 0.0
-            };
-        }
-    }
-
     private void LoadLyricsFor(Song song)
     {
         Lyrics.Clear();
@@ -274,7 +188,6 @@ public partial class PlayerViewModel : ObservableObject
         foreach (var line in _lyricsService.LoadLyrics(song.LyricsPath))
             Lyrics.Add(line);
     }
-
     private void LoadAlbumArt(byte[]? coverArt)
     {
         if (coverArt is null || coverArt.Length == 0)
@@ -293,32 +206,16 @@ public partial class PlayerViewModel : ObservableObject
 
         AlbumArt = image;
     }
-
-    private void LoadBackgroundColors(byte[]? coverArt)
+    private async void LoadBackgroundColors(byte[]? coverArt)
     {
-        var (primary, secondary) = _colorService.GetDominantColors(coverArt);
-        BackgroundPrimary = primary;
-        BackgroundSecondary = secondary;
+        var song = CurrentSong;
 
-        Palette = _colorService.GetPalette(coverArt, 6);
-    }
+        var palette = await Task.Run(() => _colorService.GetPalette(coverArt, 6));
 
-    private static Color Lighten(Color color, double amount, byte alpha)
-    {
-        amount = Math.Clamp(amount, 0, 1);
-        return Color.FromArgb(
-            alpha,
-            (byte)(color.R + (255 - color.R) * amount),
-            (byte)(color.G + (255 - color.G) * amount),
-            (byte)(color.B + (255 - color.B) * amount));
-    }
+        if (CurrentSong != song) return;
 
-    private static Color Darken(Color color, double factor)
-    {
-        factor = Math.Clamp(factor, 0, 1);
-        return Color.FromRgb(
-            (byte)(color.R * factor),
-            (byte)(color.G * factor),
-            (byte)(color.B * factor));
+        BackgroundPrimary = palette[0];
+        BackgroundSecondary = palette.Count > 1 ? palette[1] : palette[0];
+        Palette = palette;
     }
 }

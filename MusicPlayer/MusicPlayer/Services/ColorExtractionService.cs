@@ -5,19 +5,10 @@ using System.Linq;
 using System.Windows.Media;
 
 namespace MusicPlayer.Services;
-
 public class ColorExtractionService
 {
     private static readonly Color FallbackPrimary = Color.FromRgb(30, 30, 30);
     private static readonly Color FallbackSecondary = Color.FromRgb(10, 10, 10);
-
-    public (Color Primary, Color Secondary) GetDominantColors(byte[]? coverArt)
-    {
-        var p = GetPalette(coverArt, 2);
-        return (p[0], p.Count > 1 ? p[1] : p[0]);
-    }
-
-    /// <summary>Devuelve varios colores dominantes de la carátula.</summary>
     public IReadOnlyList<Color> GetPalette(byte[]? coverArt, int count = 6)
     {
         var fallback = new List<Color> { FallbackPrimary, Color.FromRgb(45, 45, 55), FallbackSecondary };
@@ -44,8 +35,6 @@ public class ColorExtractionService
             return fallback;
         }
     }
-
-    // Sube la saturación para que las burbujas se vean más vivas
     private static Color Boost(Color c, double satFactor)
     {
         double r = c.R / 255.0, g = c.G / 255.0, b = c.B / 255.0;
@@ -81,6 +70,7 @@ public class ColorExtractionService
         return Color.FromRgb(
             (byte)Math.Clamp((rgb.R + m) * 255, 0, 255),
             (byte)Math.Clamp((rgb.G + m) * 255, 0, 255),
-            (byte)Math.Clamp((rgb.B + m) * 255, 0, 255));
+            (byte)Math.Clamp((rgb.B + m) * 255, 0, 255)
+        );
     }
 }
