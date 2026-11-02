@@ -15,38 +15,35 @@
 
         <Grid Margin="48">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <Border Width="260" Height="260" CornerRadius="8"
+                <Border x:Name="CoverBorder" Width="380" Height="380" CornerRadius="8"
                         Background="#2A2A2A" ClipToBounds="True">
                     <Image Source="{Binding AlbumArt}" Stretch="UniformToFill" Margin="0,0,-1,2"/>
                 </Border>
-                <TextBlock Text="{Binding CurrentSong.Title}" 
-                           Foreground="White"
-                           FontSize="20"
-                           FontWeight="SemiBold"
-                           TextWrapping="Wrap" Width="244" HorizontalAlignment="Center" TextAlignment="Center"/>
+
+                <local:MarqueeText Text="{Binding CurrentSong.Title}"
+                                   Width="{Binding ActualWidth, ElementName=CoverBorder}"
+                                   Margin="0,20,0,0"
+                                   TextElement.Foreground="White"
+                                   TextElement.FontSize="26"
+                                   TextElement.FontWeight="SemiBold"/>
 
                 <TextBlock Text="{Binding CurrentSong.Artist}"
+                           Width="{Binding ActualWidth, ElementName=CoverBorder}"
+                           Margin="0,6,0,0"
                            Foreground="#D0D0D0"
-                           FontSize="14" Width="218" HorizontalAlignment="Center" TextAlignment="Center"/>
+                           FontSize="16"
+                           TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"/>
             </StackPanel>
+
 
             <Grid x:Name="LyricsHost" Grid.Column="1" Margin="48,0,0,0" ClipToBounds="True">
                 
-                <!--                 <Grid.OpacityMask>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="Transparent" Offset="0"/>
-                        <GradientStop Color="Black" Offset="0.18"/>
-                        <GradientStop Color="Black" Offset="0.82"/>
-                        <GradientStop Color="Transparent" Offset="1"/>
-                    </LinearGradientBrush>
-                </Grid.OpacityMask> -->
-
-
                 <Canvas>
                     <ItemsControl x:Name="LyricsList"
                                   ItemsSource="{Binding Lyrics}"
@@ -59,7 +56,7 @@
                             <DataTemplate DataType="{x:Type models:LyricLine}">
                                 <TextBlock Text="{Binding Text}"
                                           Foreground="White"
-                                          FontSize="130"
+                                          FontSize="80"
                                           FontWeight="Bold"
                                           TextAlignment="Center"
                                           TextWrapping="Wrap"
