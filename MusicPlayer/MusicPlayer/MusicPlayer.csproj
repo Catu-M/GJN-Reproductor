@@ -8,10 +8,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
+    <ApplicationIcon>Assets\icono.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Fonts\MontserratAlternates-Bold.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\icono.ico" />
   </ItemGroup>
 
   <ItemGroup>

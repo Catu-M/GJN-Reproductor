@@ -1,66 +1,113 @@
 # Reproductor de música
 
-Reproductor de escritorio para Windows, hecho en WPF sobre .NET 10, inspirado en
-Apple Music. Reproduce canciones locales (.mp3) con letra sincronizada (.lrc) y
+Reproductor de escritorio para Windows, hecho en WPF sobre .NET 10. Reproduce canciones locales (`.mp3`) con letra sincronizada (`.lrc`) y
 un fondo animado con los colores dominantes de la carátula.
 
 ## Requisitos
 
 - Windows 10/11
-- Visual Studio 2022 (17.12 o superior) con el workload **".NET Desktop Development"**
-  instalado, o el SDK de .NET 10 con el workload de escritorio:
-  ```
-  dotnet workload install wasm-tools
-  ```
-  (el instalador del SDK de .NET para Windows ya incluye lo necesario para WPF;
-  si usas solo la CLI, asegúrate de tener el SDK "windows desktop" instalado).
+- Arquitectura x64 (64 bits)
 
-## Cómo abrir y correr
+## Instructivo de instalación
 
-1. Abre `MusicPlayer.csproj` con Visual Studio (doble clic, o `Archivo > Abrir > Proyecto`).
-2. Visual Studio restaurará automáticamente los paquetes NuGet (NAudio, TagLibSharp,
-   CommunityToolkit.Mvvm, ColorThiefDotNet). Si prefieres la terminal:
-   ```
-   dotnet restore
-   dotnet build
-   dotnet run
-   ```
-3. Presiona F5 (o `dotnet run`) para ejecutar.
-4. En la pestaña **Biblioteca**, haz clic en "Elegir carpeta" y selecciona la
-   carpeta donde tengas tus archivos `.mp3`.
-5. Para que la letra sincronizada aparezca, cada `.mp3` necesita un archivo
-   `.lrc` con **el mismo nombre exacto**, en la misma carpeta.
-   Ejemplo: `This Is How I Disappear.mp3` + `This Is How I Disappear.lrc`.
-6. Presiona el botón ▶ junto a una canción para reproducirla; automáticamente
-   puedes ir a la pestaña "Reproduciendo" para ver la carátula, el título y la
-   letra resaltándose en tiempo real.
+1. Ejecutar `Instalador_MusicPlayer.exe`, presionar el botón *Siguiente* y seleccionar el recuadro para crear un acceso directo en el escritorio.
 
-## Formato del archivo .lrc
+<br>
+
+---
+<br>
+<br>
+<p align="center">
+  <img src="Documentacion/Instalador.png" alt="Instalador" width="400">
+</p>
+
+---
+<br>
+
+
+## Instructivo de ejecución y uso
+
+Al iniciar el programa, se despliegan dos ventanas:
+
+- Ventana de control
+- Ventana de visualización
+
+### Ventana de control
+
+Esta ventana posee distintas funcionalidades:
+
+<br>
+
+---
+
+<br>
+<p align="center">
+  <img src="Documentacion/control.png" alt="Ventana de control" width="1000">
+</p>
+<br>
+
+---
+<br>
+
+1. **Seleccionar carpeta:** accede al explorador de archivos para seleccionar la carpeta donde están los `archivos.mp3` junto con los `archivos.lrc`.
+
+2. **Lista de pistas:** al cargar una carpeta se despliegan todas las pistas encontradas. Con el botón de *play* podemos iniciar la reproducción de la alabanza.
+
+3. **Controles del reproductor:** al iniciar una alabanza aparecerá un recuadro en la parte inferior que nos da la opción de pausar y reanudar la pista, así como la de saltar a la siguiente o regresar a la anterior. El reproductor muestra una barra de progreso junto a un reloj que indica el tiempo transcurrido de la canción. Si arrastramos esa barra, podemos situarnos en cualquier parte de la canción y la letra también se actualizará.
+
+<br>
+
+---
+<br>
+
+<p align="center">
+  <img src="Documentacion/Controles.png" alt="Controles del reproductor" width="1000">
+</p>
+<br>
+
+---
+<br>
+
+4. **Abrir pantalla:** si por algún motivo no se abre automáticamente la pantalla de visualización o se cierra accidentalmente, podemos reabrirla con este botón.
+
+5. **Pantalla completa:** para mayor comodidad, se incorpora este botón que fuerza la pantalla completa sin tener que tocar nada de la segunda pantalla.
+
+6. **Buscar:** podemos buscar por título o nombre en la barra de búsqueda desplegable.
+
+
+### Ventana de visualización
+
+En este apartado tendremos dos columnas: en una se mostrará la `carátula` del `álbum`, el `título` y el `artista`. El fondo tomará los colores dominantes de cada `carátula` y los textos de `título` y `artista`, al ser muy extensos, se mostrarán en forma de carrusel, desplazándose de derecha a izquierda.
+
+<br>
+
+---
+<br>
+<p align="center">
+  <img src="Documentacion/Vista.png" alt="Ventana de visualización" width="800">
+</p>
+
+<br>
+
+---
+<br>
+
+## Funcionamiento del programa
+
+El programa depende de dos elementos principales: los `archivos.mp3` y los `archivos.lrc`. Su funcionamiento se basa en una expresión regular, por lo que el formato del `archivo.lrc` debe seguirse a cabalidad.
+
+### Formato del archivo .lrc
 
 Cada línea lleva el tiempo entre corchetes, seguido del texto:
 
 ```
-[00:12.30]By streetlight this dark night
-[00:16.80]Drain all the blood and give the kids a show
-[00:21.10]A séance down below
+[00:12.30] Ejemplo para el archivo.lrc
+[00:16.80] Se ajusta el tiempo de aparición
+[00:21.10] Minutos, segundos y milésimas de segundo
 ```
 
-## Estructura del proyecto
+Dentro del programa se ejecuta un `TimeStamp` que sincroniza el tiempo de la pista con el texto que aparecerá en pantalla, dividiéndose en tres posibles estados: letra actual, letra pasada y letra futura, cada una con distinto tamaño, color y opacidad, lo que da un efecto de fluidez al transicionar entre ellas.
 
-```
-MusicPlayer/
-├── Models/          → Song.cs, LyricLine.cs
-├── Services/         → MusicLibraryService, LyricsService, ColorExtractionService
-├── ViewModels/       → PlayerViewModel (estado compartido), LibraryViewModel
-├── Views/            → LibraryView.xaml (pestaña 1), PlayerView.xaml (pestaña 2)
-├── Converters/       → LyricColorConverter (colorea letra pasada/actual/futura)
-├── MainWindow.xaml   → TabControl con las dos pestañas
-└── App.xaml          → registro del conversor como recurso global
-```
+## Nota
 
-## Próximos pasos sugeridos
-
-- Agregar barra de progreso con seek (arrastrar para adelantar/atrasar la canción).
-- Guardar la última carpeta usada (para no tener que elegirla cada vez que abres el programa).
-- Scroll automático de la letra para mantener la línea activa centrada en pantalla.
-- Botones de siguiente/anterior canción y una cola de reproducción.
+El programa solo trabaja con `archivos.mp3`; no acepta otras extensiones. Esta decisión fue tomada para aligerar el peso y los requisitos de los equipos donde será ejecutado.
